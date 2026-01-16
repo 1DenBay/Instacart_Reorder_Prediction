@@ -1,0 +1,22 @@
+# Python önbellek dosyaları
+__pycache__/
+*.py[cod]
+*.so
+
+# Sanal Ortam
+venv/
+.venv/
+.env
+
+# VS Code ayarları
+.vscode/
+
+# VERİ DOSYALARI (Burası kritik, GB'larca veriyi git'e atmıyoruz)
+data/
+*.csv
+*.zip
+*.db
+*.sqlite3
+
+# Jupyter Notebook checkpointleri
+.ipynb_checkpoints

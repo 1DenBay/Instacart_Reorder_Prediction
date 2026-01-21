@@ -11,13 +11,13 @@ DB_PATH = BASE_DIR / "data" / "processed" / "instacart.db"
 def get_db_connection():
     return sqlite3.connect(DB_PATH)
 
+
 """
     USER_FEATURE TABLOSU
     Kullanıcı bazlı özellikleri (User Features) hesaplar ve yeni bir tabloya yazar.
     1. user_total_orders: Kullanıcının toplam sipariş sayısı
     2. user_avg_days_between: Siparişler arası ortalama gün sayısı
 """
-
 def create_user_features():
     print("👤 Kullanıcı Özellikleri (User Features) hesaplanıyor...")
     start_time = time.time()
@@ -63,11 +63,11 @@ def create_product_features():
     # AVG(reordered) bize o ürünün tekrar alınma olasılığını verir.
     query = """
     SELECT 
-        product_id,
-        COUNT(*) as prod_total_orders,
-        AVG(reordered) as prod_reorder_rate
-    FROM order_products__prior
-    GROUP BY product_id
+        product_id,         --Ürünlerin ID lerini alır
+        COUNT(*) as prod_total_orders,      --Alınan her ID nin sipariş tablosunda kaç kere geçtiğini sayar
+        AVG(reordered) as prod_reorder_rate         --reordered sütunu 0 (sipariş yok), 1 (sipariş var) şeklindedir. 0 ve 1 lerin ortalamasını alır yani ürünün tekrar sipariş edilme oranını direkt verir
+    FROM order_products__prior       --Verileri önceden sipariş edilen ürünlerden al
+    GROUP BY product_id         --Satırları tek tek kontrol et aynı ID olanları yanı aynı ürünleri birleştir
     """
     
     df = pd.read_sql(query, conn)
@@ -91,16 +91,16 @@ def create_uxp_features():
     start_time = time.time()
     conn = get_db_connection()
     
-    # SQL: Hem orders hem order_products tablolarını birleştiriyoruz.
+    # SQL: Hem orders hem order_products tablolarını birleştiriyoruz. Ekler kullanılır.
     query = """
     SELECT 
-        o.user_id,
-        op.product_id,
-        COUNT(*) as uxp_total_bought,
-        AVG(op.reordered) as uxp_reorder_ratio
-    FROM order_products__prior op
-    JOIN orders o ON op.order_id = o.order_id
-    GROUP BY o.user_id, op.product_id
+        o.user_id,      --Order tablosundan kullanıcı idler
+        op.product_id,      --order-prod tablosundan ürün idleri
+        COUNT(*) as uxp_total_bought,       --Bu kullanıcı bu ürünü toplam kaç kere aldı
+        AVG(op.reordered) as uxp_reorder_ratio      --Bu kullanıcı bu ürünü tekrar alma oranı
+    FROM order_products__prior op       --order_products tablosundan verileri al
+    JOIN orders o ON op.order_id = o.order_id       --orders tablosu ile order_products tablosunu order_id üzerinden birleştir
+    GROUP BY o.user_id, op.product_id       --Kullanıcı ve ürün bazında gruplandır
     """
     
     # Chunking (Parçalı Okuma) kullanmıyoruz çünkü sonucun boyutu RAM'e sığar (yaklaşık 10-15 milyon satır).

@@ -5,7 +5,7 @@ from pathlib import Path
 
 """
 Bu dosya; veritabanındaki dağınık istatistikleri alır, geçmiş alışverişlere bakarak bir "Aday Listesi" çıkarır, 
-sonra da "Son siparişte bunları aldı mı?" diye kontrol ederek (ayırdığımız test verilerinden kontrolü yapat) yanına 1 veya 0 yazar.
+sonra da "Son siparişte bunları aldı mı?" diye kontrol ederek (ayırdığımız test verilerinden kontrolü yapar) yanına 1 veya 0 yazar. Bu ürünler üzerinden kişiye özel çıkarım yapar tüm ürünler ile ilişkilendirmez.
 Çıkan sonuç, modelin ders çalışacağı kitaptır. yani gözetimli öğrenme yapıyoruz veriyi ver tahmin etsin sonra kontrol et yanlışlarının üzerinden geçsin
 """
 
@@ -27,7 +27,7 @@ def get_db_connection():
     Bu tablo şunları içerir:
     - user_id, product_id
     - Tüm featurelar (user, product, uxp)
-    - TARGET (reordered): 1 (aldı) veya 0 (almadı)
+    - TARGET (reordered): 1 (aldı) veya 0 (almadı) -> tahmine göre 1 veya 0 yazar
 """
 def create_train_dataset():
 

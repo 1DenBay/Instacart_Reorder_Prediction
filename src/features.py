@@ -4,6 +4,13 @@ import os
 from pathlib import Path
 import time
 
+"""
+    Veri tabanından model için özellikler çıkarır.
+    USER_FEATURE TABLOSU (Kullanıcıyı tanıma)
+    PRODUCT_FEATURE TABLOSU (Ürünü tanıma)
+    USER_PRODUCT_FEATURE (uxp_tablo) TABLOSU (Kullanıcıyı ve Ürünü işilkilendirme)
+"""
+
 # --- AYARLAR ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "data" / "processed" / "instacart.db"
@@ -13,8 +20,8 @@ def get_db_connection():
 
 
 """
-    USER_FEATURE TABLOSU
-    Kullanıcı bazlı özellikleri (User Features) hesaplar ve yeni bir tabloya yazar.
+    USER_FEATURE TABLOSU (Kullanıcıyı tanıma)
+    Kullanıcı bazlı özellikleri hesaplar ve yeni bir tabloya yazar.
     1. user_total_orders: Kullanıcının toplam sipariş sayısı
     2. user_avg_days_between: Siparişler arası ortalama gün sayısı
 """
@@ -48,8 +55,8 @@ def create_user_features():
 
 
 """
-    ITEM_FEATURE TABLOSU
-    Ürün bazlı özellikleri (Item Features) hesaplar.
+    Product_FEATURE TABLOSU
+    Ürün bazlı özellikleri hesaplar.
     1. prod_total_orders: Ürün toplam kaç kere satıldı?
     2. prod_reorder_rate: Ürün ne sıklıkla tekrar sipariş ediliyor?
 """
@@ -79,8 +86,8 @@ def create_product_features():
 
 
 """
-    USER_PRODUCT TABLOSU
-    Kullanıcı-Ürün Çifti Özellikleri (User-Product Interaction).
+    USER_PRODUCT TABLOSU (uxp)
+    Kullanıcı-Ürün Çifti Özellikleri
     En kritik tablo budur. "Ahmet - Muz" ilişkisini tutar.
     1. uxp_total_bought: Kullanıcı bu ürünü toplam kaç kere aldı?
     2. uxp_reorder_ratio: Kullanıcının bu ürünü tekrar alma oranı.

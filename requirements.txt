@@ -1,1 +1,8 @@
-/kaggle/working/xgb_instacart_optimized_v2.json
+pandas
+numpy
+scikit-learn
+xgboost
+matplotlib
+seaborn
+optuna
+kaggle

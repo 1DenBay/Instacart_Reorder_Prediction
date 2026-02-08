@@ -104,7 +104,10 @@ def create_uxp_features():
         o.user_id,      --Order tablosundan kullanıcı idler
         op.product_id,      --order-prod tablosundan ürün idleri
         COUNT(*) as uxp_total_bought,       --Bu kullanıcı bu ürünü toplam kaç kere aldı
-        AVG(op.reordered) as uxp_reorder_ratio      --Bu kullanıcı bu ürünü tekrar alma oranı
+        AVG(op.reordered) as uxp_reorder_ratio,      --Bu kullanıcı bu ürünü tekrar alma oranı
+        -- v2 güncellemesi ile
+        MAX(o.order_number) as uxp_last_order_number, --Bu kullanıcı bu ürünü en son kaçıncı siparişinde aldı
+        AVG(op.add_to_cart_order) as uxp_avg_position --Bu kullanıcı bu ürünü ortalama olarak sepetin kaçıncı sırasına ekliyor
     FROM order_products__prior op       --order_products tablosundan verileri al
     JOIN orders o ON op.order_id = o.order_id       --orders tablosu ile order_products tablosunu order_id üzerinden birleştir
     GROUP BY o.user_id, op.product_id       --Kullanıcı ve ürün bazında gruplandır

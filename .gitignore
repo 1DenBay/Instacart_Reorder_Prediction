@@ -17,6 +17,7 @@ data/
 *.zip
 *.db
 *.sqlite3
+*.json  
 
 # Jupyter Notebook checkpointleri
 .ipynb_checkpoints

@@ -53,6 +53,16 @@ def create_train_dataset():
         uf.user_avg_days_between, -- Kullanıcının ortalama siparişler arası gün sayısı
         pf.prod_total_orders, -- Ürünün toplam sipariş sayısı
         pf.prod_reorder_rate, -- Ürünün tekrar sipariş edilme oranı
+
+        -- [v2] Özellikler
+        uf.user_avg_basket_size,   -- Kullanıcı hacmi (Toptancı mı perakendeci mi?)
+        pf.prod_avg_position,      -- Ürün genel önceliği (Süt mü sakız mı?)
+        uxp.uxp_avg_position,      -- Kişisel öncelik (Ahmet bunu sepete hemen mi atar?)
+        
+        -- Recency (Unutkanlık Faktörü)
+        -- Şu anki sipariş numarasından (o.order_number), ürünü en son aldığı sipariş numarasını çıkarıyoruz.
+        -- Örn: Şu an 10. siparişte, Muzu en son 7. siparişte aldı. Sonuç: 3 (3 sipariştir almıyor).
+        (o.order_number - uxp.uxp_last_order_number) as orders_since_last_bought,
         
         -- Hedef Değişken - Cevap anahtarı (Target Finding -> Bu ürün son siparişte gerçekten alındı mı)
         -- Eğer train setindeki siparişte bu ürün varsa 1, yoksa 0.

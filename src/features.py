@@ -22,17 +22,19 @@ def get_db_connection():
 """
     USER_FEATURE TABLOSU (Kullanıcıyı tanıma)
     Kullanıcı bazlı özellikleri hesaplar ve yeni bir tabloya yazar.
-    1. user_total_orders: Kullanıcının toplam sipariş sayısı
-    2. user_avg_days_between: Siparişler arası ortalama gün sayısı
-    user_avg_basket_size: Ortalama sepet büyüklüğü (Hacim)
+    user_total_orders: Kullanıcının toplam sipariş sayısı
+    user_avg_days_between: Siparişler arası ortalama gün sayısı
+    v2-user_avg_basket_size: Ortalama sepet büyüklüğü (Hacim)
+    user_avg_hour: Kullanıcının ortalama alışveriş saati.
+    user_avg_dow: Kullanıcının ortalama alışveriş günü
 """
 def create_user_features():
-    print("👤 Kullanıcı Özellikleri (User Features) hesaplanıyor...")
+    print("Kullanıcı Özellikleri (User Features) hesaplanıyor")
     start_time = time.time()
     
     conn = get_db_connection()
     
-    # v2 güncellemesi - Önce her siparişte kaç ürün var (Sepet Büyüklüğü) hesaplayalım
+    # Önce her siparişte kaç ürün var (Sepet Büyüklüğü) hesaplayalım
     # Bu orders tablosunda yok, order_products tablosundan hesaplamamız lazım
     query_basket = """
     SELECT 
@@ -53,7 +55,10 @@ def create_user_features():
     SELECT 
         user_id,
         MAX(order_number) as user_total_orders,
-        AVG(days_since_prior_order) as user_avg_days_between
+        AVG(days_since_prior_order) as user_avg_days_between,
+        AVG(order_hour_of_day) as user_avg_hour,  -- Genelde saat kaçta gelir
+        AVG(order_dow) as user_avg_dow            -- Genelde hangi gün gelir
+
     FROM orders
     WHERE eval_set = 'prior'
     GROUP BY user_id
@@ -62,7 +67,6 @@ def create_user_features():
     
     # İki tabloyu user_id üzerinden birleştir
     final_df = pd.merge(df, df_basket[['user_id', 'user_avg_basket_size']], on='user_id', how='left')
-    
     # Boş değer varsa (nadiren olur) doldur
     final_df = final_df.fillna(0)
     
@@ -117,7 +121,7 @@ def create_product_features():
 """
 def create_uxp_features():
     
-    print("🤝 Kullanıcı-Ürün İlişkileri (UxP Features) hesaplanıyor... (Bu biraz sürebilir)")
+    print("Kullanıcı-Ürün İlişkileri (UxP Features) hesaplanıyor")
     start_time = time.time()
     conn = get_db_connection()
     

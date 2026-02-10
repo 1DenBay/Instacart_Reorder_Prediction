@@ -24,14 +24,17 @@ def get_db_connection():
 
 """
     Model eğitimi için gerekli olan 'Master Table'ı oluşturur ve CSV olarak kaydeder.
-    Bu tablo şunları içerir:
-    - user_id, product_id
-    - Tüm featurelar (user, product, uxp)
-    - TARGET (reordered): 1 (aldı) veya 0 (almadı) -> tahmine göre 1 veya 0 yazar
+    user_id, product_id
+    Tüm featurelar (user, product, uxp)
+    TARGET (reordered): 1 (aldı) veya 0 (almadı) -> tahmine göre 1 veya 0 yazar
+    o.order_hour_of_day: Siparişin verildiği an (Saat)
+    o.order_dow: Siparişin verildiği gün (Pazartesi..)
+    uf.user_avg_hour: Kullanıcının alışkanlığı (Saat)
+    uf.user_avg_dow: Kullanıcının alışkanlığı (Gün)
 """
 def create_train_dataset():
 
-    print("🚂 Eğitim Verisi (Train Dataset) hazırlanıyor...")
+    print("Eğitim Verisi (Train Dataset) hazırlanıyor")
     start_time = time.time() # Zaman ölçümü için
     conn = get_db_connection() # Veritabanına bağlan
     
@@ -58,6 +61,11 @@ def create_train_dataset():
         uf.user_avg_basket_size,   -- Kullanıcı hacmi (Toptancı mı perakendeci mi?)
         pf.prod_avg_position,      -- Ürün genel önceliği (Süt mü sakız mı?)
         uxp.uxp_avg_position,      -- Kişisel öncelik (Ahmet bunu sepete hemen mi atar?)
+
+        o.order_hour_of_day,      -- Şu anki sipariş saati kaç? (Örn: 14)
+        o.order_dow,              -- Bugün günlerden ne? (Örn: 0=Pazar)
+        uf.user_avg_hour,         -- Kullanıcı genelde saat kaçta alır? (Örn: 09.5)
+        uf.user_avg_dow,          -- Kullanıcı genelde hangi gün alır? (Örn: 2.3)
         
         -- Recency (Unutkanlık Faktörü)
         -- Şu anki sipariş numarasından (o.order_number), ürünü en son aldığı sipariş numarasını çıkarıyoruz.

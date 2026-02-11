@@ -80,9 +80,10 @@ def create_user_features():
 """
     Product_FEATURE TABLOSU
     Ürün bazlı özellikleri hesaplar.
-    1. prod_total_orders: Ürün toplam kaç kere satıldı?
-    2. prod_reorder_rate: Ürün ne sıklıkla tekrar sipariş ediliyor?
+    prod_total_orders: Ürün toplam kaç kere satıldı?
+    prod_reorder_rate: Ürün ne sıklıkla tekrar sipariş ediliyor?
     prod_avg_position: Ürün ortalama olarak sepetin kaçıncı sırasına ekleniyor? (Popüler ürünler genellikle daha erken eklenir)
+    id güncellemeleri ile artık ürünlerin hangi reyonda ve departmanda olduğunu da ekliyoruz (tabloları bağladık)
 """
 def create_product_features():
     
@@ -93,13 +94,18 @@ def create_product_features():
     # SQL: Sadece prior tablosunu kullanarak ürün istatistiklerini çıkarıyoruz
     query = """
     SELECT 
-        product_id,         --Ürünlerin ID lerini alır
+        op.product_id,         --Ürünlerin ID lerini alır
+        MAX(p.aisle_id) as aisle_id, --reyonların id lerini alır
+        MAX(p.department_id) as department_id, --ürünlerin ait olduğu departmanların id lerini alır
+        -- max ifadelerini hata vermesin diye yazdık yoksa hep saten aynı değeri döndüreceklerdi çünkü ürünler tek bir reyonda ve departmanda olur
+
         COUNT(*) as prod_total_orders,      --Alınan her ID nin sipariş tablosunda kaç kere geçtiğini sayar
         AVG(reordered) as prod_reorder_rate,         --reordered sütunu 0 (sipariş yok), 1 (sipariş var) şeklindedir. 0 ve 1 lerin ortalamasını alır yani ürünün tekrar sipariş edilme oranını direkt verir
-        --v2 güncellemesi ile
         AVG(add_to_cart_order) as prod_avg_position    -- Bu ürünün ortalama olarak sepetin kaçıncı sırasına eklendiği bilgisi. Genellikle popüler ürünler daha erken eklenir, bu da onların tercih edildiğini gösterebilir. 
-    FROM order_products__prior       --Verileri önceden sipariş edilen ürünlerden al
-    GROUP BY product_id         --Satırları tek tek kontrol et aynı ID olanları yanı aynı ürünleri birleştir
+    
+    FROM order_products__prior op       --Verileri önceden sipariş edilen ürünlerden al
+    JOIN products p ON op.product_id = p.product_id -- Ürün detaylarını almak için birleştir
+    GROUP BY op.product_id         --Satırları tek tek kontrol et aynı ID olanları yanı aynı ürünleri birleştir
     """
     
     df = pd.read_sql(query, conn)

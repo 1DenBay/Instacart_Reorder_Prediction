@@ -31,6 +31,8 @@ def get_db_connection():
     o.order_dow: Siparişin verildiği gün (Pazartesi..)
     uf.user_avg_hour: Kullanıcının alışkanlığı (Saat)
     uf.user_avg_dow: Kullanıcının alışkanlığı (Gün)
+    pf.aisle_id  ürünün reyonu
+    pf.department_id  ürünün departmanı
 """
 def create_train_dataset():
 
@@ -66,6 +68,9 @@ def create_train_dataset():
         o.order_dow,              -- Bugün günlerden ne? (Örn: 0=Pazar)
         uf.user_avg_hour,         -- Kullanıcı genelde saat kaçta alır? (Örn: 09.5)
         uf.user_avg_dow,          -- Kullanıcı genelde hangi gün alır? (Örn: 2.3)
+
+        pf.aisle_id,        -- Ürünün Reyonu (Örn: 24)
+        pf.department_id,   -- Ürünün Departmanı (Örn: 4)
         
         -- Recency (Unutkanlık Faktörü)
         -- Şu anki sipariş numarasından (o.order_number), ürünü en son aldığı sipariş numarasını çıkarıyoruz.

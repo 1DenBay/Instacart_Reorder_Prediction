@@ -71,6 +71,8 @@ def create_train_dataset():
 
         pf.aisle_id,        -- Ürünün Reyonu (Örn: 24)
         pf.department_id,   -- Ürünün Departmanı (Örn: 4)
+
+        uf.user_recent_avg_days, -- trend analizi
         
         -- Recency (Unutkanlık Faktörü)
         -- Şu anki sipariş numarasından (o.order_number), ürünü en son aldığı sipariş numarasını çıkarıyoruz.

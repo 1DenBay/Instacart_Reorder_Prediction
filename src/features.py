@@ -27,6 +27,7 @@ def get_db_connection():
     v2-user_avg_basket_size: Ortalama sepet büyüklüğü (Hacim)
     user_avg_hour: Kullanıcının ortalama alışveriş saati.
     user_avg_dow: Kullanıcının ortalama alışveriş günü
+    user_recent_avg_days: Kullanıcının son 3 siparişi arasındaki ortalama gün sayısı (trend göstergesi)
 """
 def create_user_features():
     print("Kullanıcı Özellikleri (User Features) hesaplanıyor")
@@ -50,27 +51,51 @@ def create_user_features():
     df_basket['user_avg_basket_size'] = df_basket['total_items'] / df_basket['total_orders']
 
 
-    # orders tablosundan 'prior' (önceki siparişten bu yana geçen süre) setini alıyoruz (modelin öğrenmesi gereken geçmiş)
-    query = """
-    SELECT 
-        user_id,
-        MAX(order_number) as user_total_orders,
-        AVG(days_since_prior_order) as user_avg_days_between,
-        AVG(order_hour_of_day) as user_avg_hour,  -- Genelde saat kaçta gelir
-        AVG(order_dow) as user_avg_dow            -- Genelde hangi gün gelir
-
-    FROM orders
-    WHERE eval_set = 'prior'
-    GROUP BY user_id
+# Genel ve Trend Hesaplamaları
+# SQL yerine veriyi çekip Pandas ile işliyoruz, çünkü "son 3 satırı al" işlemi Pandas'ta daha kolay.    
+    query_orders = """
+    SELECT          --tüm geçmiş siparişleri çekiyoruz çünkü kullanıcı bazlı özellikler için tüm geçmişe ihtiyacımız var
+        user_id, 
+        order_number, 
+        days_since_prior_order,
+        order_hour_of_day,
+        order_dow
+    FROM orders     --siparişler tablosundan
+    WHERE eval_set = 'prior' --geçmiş sipariş olanları al
     """
-    df = pd.read_sql(query, conn)
+    # yazdığımız üstteki sql sorgusunu pythona aktarıp dataframe'e dönüştürüyoruz
+    df_orders = pd.read_sql(query_orders, conn) 
     
-    # İki tabloyu user_id üzerinden birleştir
-    final_df = pd.merge(df, df_basket[['user_id', 'user_avg_basket_size']], on='user_id', how='left')
+    # Genel Ortalamalar (Tüm Geçmiş)
+    user_general = df_orders.groupby('user_id').agg({   # kullanıcı bazında gruplandır
+        'order_number': 'max',              # user_total_orders
+        'days_since_prior_order': 'mean',   # user_avg_days_between
+        'order_hour_of_day': 'mean',        # user_avg_hour
+        'order_dow': 'mean'                 # user_avg_dow
+    }).reset_index()
+    
+    # Sütun isimlerini eskisiyle (trend özelliği öncesi sql ile normal çekiyorduk verileri) uyumlu yapalım. yani eski sorgu ile tablo isimleri aynı oldu
+    user_general.columns = ['user_id', 'user_total_orders', 'user_avg_days_between', 'user_avg_hour', 'user_avg_dow']
+    
+    # Trend Analizi (SADECE SON 3 SİPARİŞ)
+    # Veriyi sırala ve her kullanıcının son 3 siparişini al
+    last_3_orders = df_orders.sort_values(['user_id', 'order_number']).groupby('user_id').tail(3) 
+    
+    # Son 3 siparişin gün ortalaması (Ahmet son zamanlarda sıklaştırdı mı?)
+    user_recent = last_3_orders.groupby('user_id')['days_since_prior_order'].mean().reset_index()
+    user_recent.columns = ['user_id', 'user_recent_avg_days']
+
+    
+    # birleştirme (Merge)
+    # Genel Özellikler (eski sql sorgusu python ile yapıldı) + Sepet Büyüklüğü
+    final_df = pd.merge(user_general, df_basket[['user_id', 'user_avg_basket_size']], on='user_id', how='left')
+    
+    # Trend Özelliği (Yeni eklenen)
+    final_df = pd.merge(final_df, user_recent, on='user_id', how='left')
     # Boş değer varsa (nadiren olur) doldur
     final_df = final_df.fillna(0)
     
-    print(f"   --> {len(final_df)} kullanıcı için gelişmiş özellikler çıkarıldı.")
+    print(f"   --> {len(final_df)} kullanıcı için gelişmiş özellikler çıkarıldı")
     final_df.to_sql('user_features', conn, if_exists='replace', index=False)
     
     conn.close()

@@ -19,8 +19,7 @@ data/
 *.csv
 *.zip
 *.db
-*.sqlite3
-*.json  
+*.sqlite3 
 
 # Jupyter Notebook checkpointleri
 .ipynb_checkpoints
